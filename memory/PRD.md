@@ -11,7 +11,23 @@ Build a complete production-ready premium clothing brand website called "THE LIO
 - **Orders**: Google Apps Script webhook (POST)
 - **Payments**: UPI + COD (no Razorpay)
 
-## What's Been Implemented (2025-02-xx)
+## What's Been Implemented
+
+### Session 1 — Initial Build (MVP)
+- Cinematic hero, storefront, product cards, product modal, admin panel, footer
+
+### Session 2 — Production Fixes (2025-02)
+- [x] Supabase credentials live: `REACT_APP_SUPABASE_URL` + `REACT_APP_SUPABASE_ANON_KEY` configured
+- [x] site_settings table now includes `instagram_url` field
+- [x] Footer Instagram icon links to `siteSettings.instagram_url` (fallback: https://www.instagram.com/thelioneyotshirts/)
+- [x] Admin Site Settings form exposes `instagram_url` field for editing
+- [x] Google Script URL: uses `site_settings.google_script_url` first, then `REACT_APP_GOOGLE_SCRIPT_URL` fallback
+- [x] WhatsApp: uses `site_settings.whatsapp_number` first, then `REACT_APP_WHATSAPP_NUMBER` fallback
+- [x] products table CRUD uses exact fields: id, title, caption, price, category, image1, image2, image3, features, is_active, created_at
+- [x] site_settings CRUD uses exact fields: id, hero_heading, hero_subtext, hero_image, whatsapp_number, upi_id, google_script_url, instagram_url, updated_at
+- [x] Product images → `product-images` bucket, Hero/QR images → `site-images` bucket
+- [x] Storefront only shows products where `is_active = true`
+- [x] No code changes needed after `.env` is set — fully config-driven
 
 ### Storefront
 - [x] Premium dark hero section with "IGNITE YOUR STYLE" heading (backend-driven)
