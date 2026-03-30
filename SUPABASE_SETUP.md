@@ -4,7 +4,54 @@
 1. Go to [supabase.com](https://supabase.com) and create a new project
 2. Note your **Project URL** and **anon public key** from Settings → API
 
-## Step 2: Create Tables
+## IMPORTANT: Run this first if site_settings table is missing
+
+If the admin Site Settings page isn't loading, the `site_settings` table may not exist. Run this SQL:
+
+```sql
+-- Create site_settings table (run this if missing)
+CREATE TABLE IF NOT EXISTS site_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  hero_heading TEXT DEFAULT 'IGNITE YOUR STYLE',
+  hero_subtext TEXT DEFAULT 'Premium streetwear engineered for the bold generation.',
+  hero_image TEXT,
+  whatsapp_number TEXT DEFAULT '9557843135',
+  upi_id TEXT,
+  google_script_url TEXT,
+  qr_image_url TEXT,
+  instagram_url TEXT DEFAULT 'https://www.instagram.com/thelioneyotshirts/',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default row (run only if table was just created)
+INSERT INTO site_settings (
+  hero_heading, hero_subtext, whatsapp_number, 
+  qr_image_url, instagram_url
+) VALUES (
+  'IGNITE YOUR STYLE',
+  'Premium streetwear engineered for the bold generation. Limited drops. Unlimited attitude.',
+  '9557843135',
+  'https://customer-assets.emergentagent.com/job_lioneyo-preview/artifacts/faocstdf_upi-qr.png.jpeg',
+  'https://www.instagram.com/thelioneyotshirts/'
+) ON CONFLICT DO NOTHING;
+```
+
+## Storage Buckets (required for image uploads from admin)
+
+Go to **Supabase Dashboard → Storage → New bucket** and create:
+
+1. **`product-images`** — Set Public: ON
+2. **`site-images`** — Set Public: ON
+
+Then add these Storage policies for each bucket:
+- Go to Storage → Policies → New Policy → For Full Customization
+- Operation: INSERT, Target roles: anon → Policy definition: `true`
+- Operation: SELECT, Target roles: anon → Policy definition: `true`
+
+**Note:** You can also just paste image URLs in the admin forms — no upload needed.
+
+---
+
 
 Run this SQL in Supabase → SQL Editor:
 

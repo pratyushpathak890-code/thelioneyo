@@ -10,12 +10,32 @@ export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 export async function uploadImage(file, bucket = 'product-images') {
   if (!supabase) throw new Error('Supabase not configured');
-  const fileExt = file.name.split('.').pop();
+  const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-  const { error } = await supabase.storage.from(bucket).upload(fileName, file, { upsert: true });
-  if (error) throw error;
-  const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
-  return data.publicUrl;
+
+  const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
+    upsert: true,
+    contentType: file.type || 'image/jpeg',
+    cacheControl: '3600',
+  });
+
+  if (error) {
+    const msg = error.message || '';
+    if (msg.toLowerCase().includes('bucket') || msg.includes('404') || error.statusCode === 404) {
+      throw new Error(
+        `Storage bucket "${bucket}" not found.\n\nGo to Supabase Dashboard → Storage → New bucket → Name: "${bucket}" → Public: ON.\n\nOr paste an image URL directly in the field below.`
+      );
+    }
+    if (error.statusCode === 403 || msg.toLowerCase().includes('policy') || msg.toLowerCase().includes('unauthorized')) {
+      throw new Error(
+        `Upload permission denied for bucket "${bucket}".\n\nIn Supabase Dashboard → Storage → "${bucket}" → Policies → Add policy to allow INSERT for anon role.\n\nOr paste an image URL directly.`
+      );
+    }
+    throw new Error(msg || 'Upload failed. Try pasting an image URL directly.');
+  }
+
+  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+  return urlData.publicUrl;
 }
 
 export async function fetchProducts() {

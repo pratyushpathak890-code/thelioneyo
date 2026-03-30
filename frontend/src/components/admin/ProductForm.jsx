@@ -26,6 +26,7 @@ function ImageUploadField({ label, value, onChange, bucket, testid }) {
       onChange(url);
     } catch (err) {
       setError(err.message);
+      e.target.value = '';
     } finally {
       setUploading(false);
     }
@@ -38,7 +39,8 @@ function ImageUploadField({ label, value, onChange, bucket, testid }) {
       </label>
       {value && (
         <div style={{ position: 'relative', display: 'inline-block', marginBottom: '8px' }}>
-          <img src={value} alt={label} style={{ width: 80, height: 80, objectFit: 'cover', display: 'block', border: '1px solid rgba(255,255,255,0.1)' }} />
+          <img src={value} alt={label} style={{ width: 80, height: 80, objectFit: 'cover', display: 'block', border: '1px solid rgba(255,255,255,0.1)' }}
+            onError={(e) => { e.target.style.opacity = '0.3'; }} />
           <button
             type="button"
             onClick={() => onChange('')}
@@ -48,31 +50,37 @@ function ImageUploadField({ label, value, onChange, bucket, testid }) {
           </button>
         </div>
       )}
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      {/* URL paste — primary method */}
+      <input
+        className="input-field"
+        type="url"
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setError(''); }}
+        placeholder="Paste image URL (paste Google/Supabase/any URL)"
+        style={{ marginBottom: '8px' }}
+      />
+      {/* File upload — secondary */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <label
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 14px', background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.3)',
-            color: '#93c5fd', fontSize: '12px', fontFamily: "'Outfit', sans-serif", fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
+            padding: '7px 14px', background: 'rgba(37,99,235,0.08)',
+            border: '1px solid rgba(37,99,235,0.2)', color: '#93c5fd',
+            fontSize: '11px', fontFamily: "'Outfit', sans-serif", fontWeight: 700,
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+            cursor: uploading ? 'wait' : 'pointer', opacity: uploading ? 0.6 : 1,
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(37,99,235,0.2)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(37,99,235,0.1)')}
         >
-          <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} data-testid={testid} />
-          {uploading ? 'Uploading...' : <><ImagePlus size={13} /> Upload</>}
+          <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} data-testid={testid} disabled={uploading} />
+          {uploading ? 'Uploading...' : <><ImagePlus size={12} /> Upload file</>}
         </label>
-        <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontFamily: 'Manrope, sans-serif' }}>or</span>
-        <input
-          className="input-field"
-          type="url"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Paste image URL"
-          style={{ flex: 1, fontSize: '13px', padding: '8px 12px' }}
-        />
+        <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', fontFamily: 'Manrope, sans-serif' }}>(needs Supabase Storage)</span>
       </div>
-      {error && <p style={{ color: '#f87171', fontSize: '11px', fontFamily: 'Manrope, sans-serif', marginTop: '4px' }}>{error}</p>}
+      {error && (
+        <div style={{ marginTop: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', padding: '10px 12px', fontSize: '11px', fontFamily: 'Manrope, sans-serif', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }

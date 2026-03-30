@@ -64,7 +64,7 @@ export default function ProductModal({
     ? parseFeatures(product.features)
     : DEFAULT_FEATURES;
   const upiId = siteSettings?.upi_id || process.env.REACT_APP_UPI_ID || '';
-  const qrImage = siteSettings?.qr_image_url || '';
+  const qrImage = siteSettings?.qr_image_url || 'https://customer-assets.emergentagent.com/job_lioneyo-preview/artifacts/faocstdf_upi-qr.png.jpeg';
   const scriptUrl = siteSettings?.google_script_url || googleScriptUrl || '';
   const waNumber = (whatsappNumber || '9557843135').replace(/\D/g, '');
 
