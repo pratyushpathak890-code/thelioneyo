@@ -11,6 +11,7 @@ const EMPTY = {
   upi_id: '',
   google_script_url: '',
   qr_image_url: '',
+  instagram_url: 'https://www.instagram.com/thelioneyotshirts/',
 };
 
 function ImageUploadField({ label, value, onChange, bucket, testid, hint }) {
@@ -114,6 +115,7 @@ export default function SiteSettingsForm({ onSaved }) {
         upi_id: form.upi_id,
         google_script_url: form.google_script_url,
         qr_image_url: form.qr_image_url,
+        instagram_url: form.instagram_url,
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -173,6 +175,14 @@ export default function SiteSettingsForm({ onSaved }) {
             testid="upi-id-input"
           />
         </div>
+        <Field
+          label="Instagram URL"
+          value={form.instagram_url}
+          onChange={set('instagram_url')}
+          placeholder="https://www.instagram.com/yourhandle/"
+          testid="instagram-url-input"
+          hint="Shown as the Instagram icon link in the footer."
+        />
         <ImageUploadField
           label="UPI QR Code Image"
           value={form.qr_image_url}

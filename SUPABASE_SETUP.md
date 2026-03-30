@@ -34,15 +34,17 @@ CREATE TABLE site_settings (
   upi_id TEXT,
   google_script_url TEXT,
   qr_image_url TEXT,
+  instagram_url TEXT DEFAULT 'https://www.instagram.com/thelioneyotshirts/',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Insert default site settings row
-INSERT INTO site_settings (hero_heading, hero_subtext, whatsapp_number)
+INSERT INTO site_settings (hero_heading, hero_subtext, whatsapp_number, instagram_url)
 VALUES (
   'IGNITE YOUR STYLE',
   'Premium streetwear engineered for the bold generation. Limited drops. Unlimited attitude.',
-  '9557843135'
+  '9557843135',
+  'https://www.instagram.com/thelioneyotshirts/'
 );
 ```
 

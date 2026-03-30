@@ -1,9 +1,12 @@
 import React from 'react';
 import { Instagram, Twitter, MessageCircle, Mail } from 'lucide-react';
 
+const DEFAULT_INSTAGRAM = 'https://www.instagram.com/thelioneyotshirts/';
+
 export default function Footer({ siteSettings, whatsappNumber }) {
   const phone = (whatsappNumber || '9557843135').replace(/\D/g, '');
   const waUrl = `https://wa.me/${phone}`;
+  const instaUrl = siteSettings?.instagram_url || DEFAULT_INSTAGRAM;
 
   return (
     <footer
@@ -68,7 +71,7 @@ export default function Footer({ siteSettings, whatsappNumber }) {
           </p>
           <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
             {[
-              { icon: <Instagram size={16} />, href: '#', label: 'Instagram' },
+              { icon: <Instagram size={16} />, href: instaUrl, label: 'Instagram' },
               { icon: <Twitter size={16} />, href: '#', label: 'Twitter' },
               { icon: <MessageCircle size={16} />, href: waUrl, label: 'WhatsApp' },
             ].map((s) => (
