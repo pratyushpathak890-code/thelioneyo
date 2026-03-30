@@ -1,0 +1,89 @@
+{
+  "theme": "dark",
+  "archetype": "5 (Jewel & Luxury) with Electric Blue Accents",
+  "brand": "THE LIONEYO",
+  "typography": {
+    "heading_font": "Cabinet Grotesk",
+    "body_font": "Manrope",
+    "scale": {
+      "h1": "text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter uppercase",
+      "h2": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight uppercase",
+      "h3": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h4": "text-xl sm:text-2xl font-bold",
+      "body": "text-base leading-relaxed text-slate-300",
+      "small_label": "text-sm tracking-[0.2em] uppercase text-blue-500 font-bold"
+    }
+  },
+  "colors": {
+    "background": "#050505",
+    "surface_elevated": "#0A0A0A",
+    "surface_glass": "bg-black/40 backdrop-blur-2xl border border-white/10",
+    "primary_accent": "#2563EB",
+    "primary_glow": "drop-shadow-[0_0_15px_rgba(37,99,235,0.6)]",
+    "text_main": "#FFFFFF",
+    "text_muted": "#94A3B8",
+    "border_subtle": "rgba(255,255,255,0.08)",
+    "border_hover": "rgba(37,99,235,0.5)"
+  },
+  "layout_and_spacing": {
+    "container": "max-w-7xl mx-auto px-6 md:px-12",
+    "section_padding": "py-24 md:py-32",
+    "grid_bento": "grid grid-cols-1 md:grid-cols-12 gap-6",
+    "surface_strategy": "Crystal Glass for Header/Navbar and Modals. Neumorphic tactile sharp edges for Admin Dashboard cards. Flat dark backgrounds with subtle 1px borders for E-commerce product cards."
+  },
+  "components": {
+    "button_primary": "bg-blue-600 text-white rounded-none px-8 py-4 font-bold uppercase tracking-widest hover:bg-blue-500 hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] transition-all duration-300",
+    "button_secondary": "bg-transparent border border-white/20 text-white rounded-none px-8 py-4 font-bold uppercase tracking-widest hover:border-white/60 transition-all duration-300",
+    "product_card": "group relative bg-white/[0.02] border border-white/5 overflow-hidden hover:border-blue-500/40 transition-all duration-500",
+    "glass_panel": "bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl",
+    "input_field": "bg-white/5 border border-white/10 rounded-none px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-300 placeholder:text-white/30"
+  },
+  "media": {
+    "hero_image": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/c98df7ef-72fb-4caf-a40d-69e90c497b95/images/329c0d52e4af4d7a1042bd63436e4ce3ad3bf99ddf16211b744b4e7d85f60dcc.png",
+      "description": "Cinematic hero banner showing male model in premium black streetwear with electric blue neon edge lighting."
+    },
+    "texture_bg": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/c98df7ef-72fb-4caf-a40d-69e90c497b95/images/fb123d60c32e91c3c253acd08afb5c4c80a3bc767a0ab28390d18ff66bb18269.png",
+      "description": "Abstract deep black background with glowing electric blue light leaks."
+    },
+    "category_streetwear": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/c98df7ef-72fb-4caf-a40d-69e90c497b95/images/4a497e0e17fffe44e2efdf1bdf44af95eb998282c78a052d5a9c10c1da2fde3a.png",
+      "description": "Model in oversized black streetwear jacket with blue rim light."
+    },
+    "category_college": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/c98df7ef-72fb-4caf-a40d-69e90c497b95/images/d97ab4911ac0fc273f607dcde594e8ce9b1503650c2c5109cd9a63a70b8521d9.png",
+      "description": "Youth in premium dark varsity college jacket."
+    },
+    "product_1": {
+      "url": "https://images.unsplash.com/photo-1772319713406-6b0ec4772086?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwbHV4dXJ5JTIwc3RyZWV0d2VhciUyMGZhc2hpb258ZW58MHx8fHwxNzc0ODgxNDMzfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Man in puffer vest leaning on luxury SUV."
+    },
+    "product_2": {
+      "url": "https://images.pexels.com/photos/10421811/pexels-photo-10421811.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Group of fashionable men in black urban street fashion."
+    },
+    "product_3": {
+      "url": "https://images.pexels.com/photos/16113173/pexels-photo-16113173.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Man wearing sunglasses and bandana, urban style."
+    }
+  },
+  "interactions_and_motion": {
+    "hover_states": "Images scale-105 smoothly. Interactive elements glow with blue box-shadow. Text color shifts to white on hover for muted text.",
+    "modal_animation": "Framer motion recommended. Use opacity 0 to 1, y: 20 to 0, duration 0.4s easeOut.",
+    "focus_states": "Accessibility ring must be blue-500 with high contrast.",
+    "scroll_reveal": "Elements should fade-in and slide-up slightly on scroll to maintain a premium feel."
+  },
+  "icons_library": "lucide-react",
+  "instructions_to_main_agent": [
+    "Strictly adhere to the dark theme. The body background should be #050505.",
+    "Import 'Cabinet Grotesk' (or 'Clash Display' / 'Outfit' as fallback) for headings and 'Manrope' for body text from Google Fonts or similar CDN.",
+    "For the Hero Section, use the provided 'hero_image'. Overlay it with a gradient (bg-gradient-to-t from-[#050505] via-transparent to-transparent) to blend smoothly with the page.",
+    "Use the provided category and product images in the Product Grid.",
+    "Implement the 'Crystal Glass' strategy for the sticky Navbar and Product Modals (bg-black/40 backdrop-blur-xl border-white/10).",
+    "Add 'Electric Blue' glowing effects to primary buttons, active states, and hovered product cards.",
+    "Ensure all interactive elements have a 'data-testid' attribute (e.g., data-testid='add-to-cart-button').",
+    "Avoid using generic rounded corners for primary buttons; use rounded-none for a sharper, editorial 'Nike-style' streetwear aesthetic, or rounded-sm at most.",
+    "Use Shadcn UI for the Admin Dashboard, but customize it to match the dark theme (remove default white backgrounds, use flat dark greys)."
+  ]
+}
