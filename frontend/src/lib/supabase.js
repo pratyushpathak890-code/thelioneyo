@@ -61,13 +61,22 @@ export async function fetchAllProducts() {
 
 export async function fetchSiteSettings() {
   if (!supabase) return null;
-  const { data, error } = await supabase
-    .from('site_settings')
-    .select('*')
-    .limit(1)
-    .maybeSingle();
-  if (error) { console.error('fetchSiteSettings error:', error); return null; }
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      // Table may not exist yet — silent fallback
+      if (error.code !== 'PGRST205') console.warn('fetchSiteSettings:', error.message);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.warn('fetchSiteSettings (caught):', e.message);
+    return null;
+  }
 }
 
 export async function upsertSiteSettings(settings) {
