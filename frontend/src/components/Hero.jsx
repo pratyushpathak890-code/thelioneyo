@@ -67,7 +67,7 @@ export default function Hero({ siteSettings, loading }) {
         style={{
           opacity: visible ? 1 : 0,
           transition: 'opacity 0.8s ease-out',
-          paddingTop: '80px',
+          paddingTop: '40px',
         }}
       >
         {/* Label */}
@@ -110,12 +110,12 @@ export default function Hero({ siteSettings, loading }) {
           style={{
             fontFamily: "'Outfit', sans-serif",
             fontWeight: 900,
-            fontSize: 'clamp(48px, 7vw, 88px)',
+            fontSize: 'clamp(40px, 5.5vw, 76px)',
             lineHeight: 0.95,
             letterSpacing: '-0.03em',
             textTransform: 'uppercase',
             color: '#ffffff',
-            marginBottom: '24px',
+            marginBottom: '20px',
           }}
         >
           {words.map((word, i) => (
