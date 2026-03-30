@@ -1,0 +1,48 @@
+{
+  "summary": "Frontend testing for THE LIONEYO order form updates. All key changes verified: HARSH20 referral code works, placeholder updated, field names correct, IIT note code confirmed in source (but no IIT product in DB to live-test). Console error found: fetchSiteSettings body stream already read.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Site Settings fetch",
+        "issue": "Console error: 'fetchSiteSettings error: TypeError: Failed to execute text on Response: body stream already read' — appears twice on page load. Settings still load from Supabase but this error indicates response body being consumed twice.",
+        "affected_selectors": [],
+        "priority": "MEDIUM"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_3.json"],
+  "action_items": [
+    "Fix fetchSiteSettings: response body stream being read twice (TypeError: body stream already read). Check if .json() and .text() are both called on same response object.",
+    "Add an IIT category product to Supabase to fully test the IIT note feature live (code logic is correct per code review)"
+  ],
+  "critical_code_review_comments": [
+    "fetchSiteSettings reads response body twice causing 'body stream already read' error — likely calling both response.text() and response.json() on same response"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "90%"},
+  "test_credentials": "admin@thelioneyo.com / Lioneyo@123",
+  "seed_data_creation": "Only 1 product in DB: 'Oversize Tees' (STREETWEAR, ₹499, ACTIVE). IIT product missing from DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All order form changes verified: HARSH20 valid, placeholder correct, field names correct per code review. Only 1 product in Supabase (STREETWEAR). IIT note code is correct (data-testid='iit-custom-note', shows when product.category === 'iit') but untestable without IIT product in DB. Console error on site settings fetch to investigate.",
+  "test_results": {
+    "1_homepage_loads": "PASS - hero shows, IGNITE YOUR STYLE heading visible",
+    "2_products_section": "PASS - 1 streetwear product showing",
+    "3_admin_login": "PASS",
+    "4_referral_placeholder_HARSH20": "PASS - placeholder is 'Enter promo code e.g. HARSH20'",
+    "5_HARSH20_valid": "PASS - shows Valid! badge + 25% discount applied (total ₹424 for ₹499 product)",
+    "6_SHIVAM25_backward_compat": "PASS - SHIVAM25 still shows Valid! badge",
+    "7_order_payload_field_names": "PASS - code review confirms: full_name, phone, email, address, city, state, pincode, quantity, college_design_name, product_title, price, size, category, referral_code, final_total, payment_method",
+    "8_IIT_note_for_iit_products": "PASS (code confirmed) - data-testid='iit-custom-note' present, shows for category==='iit' with WhatsApp and Instagram DM links. NOT testable live (no IIT product in DB)",
+    "9_no_IIT_note_for_streetwear": "PASS - streetwear product modal does NOT show IIT note",
+    "10_google_script_url_in_env": "PASS - REACT_APP_GOOGLE_SCRIPT_URL set correctly in .env",
+    "11_payment_methods": "PASS - UPI and COD buttons present",
+    "12_whatsapp_button": "PASS - 'Order via WhatsApp' button present with data-testid='whatsapp-order-btn'"
+  }
+}

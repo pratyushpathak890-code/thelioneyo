@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 const DELIVERY_CHARGE = 50;
-const VALID_REFERRAL_CODES = ['SHIVAM25', 'PRATYUSH25', 'NITIKA25'];
+const VALID_REFERRAL_CODES = ['SHIVAM25', 'PRATYUSH25', 'NITIKA25', 'HARSH20'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 function calcPricing(basePrice, referralCode) {
@@ -65,7 +65,7 @@ export default function ProductModal({
     : DEFAULT_FEATURES;
   const upiId = siteSettings?.upi_id || process.env.REACT_APP_UPI_ID || '';
   const qrImage = siteSettings?.qr_image_url || 'https://customer-assets.emergentagent.com/job_lioneyo-preview/artifacts/faocstdf_upi-qr.png.jpeg';
-  const scriptUrl = siteSettings?.google_script_url || googleScriptUrl || '';
+  const scriptUrl = siteSettings?.google_script_url || googleScriptUrl || process.env.REACT_APP_GOOGLE_SCRIPT_URL || '';
   const waNumber = (whatsappNumber || '9557843135').replace(/\D/g, '');
 
   // Prevent body scroll when modal open
@@ -97,18 +97,22 @@ export default function ProductModal({
     setIsSubmitting(true);
 
     const orderData = {
-      ...form,
+      full_name: form.name,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      pincode: form.pincode,
+      quantity: form.quantity,
+      college_design_name: form.college_name,
       product_title: product.title,
-      product_id: product.id,
-      category: product.category,
+      price: pricing.basePrice,
       size: selectedSize,
+      category: product.category,
       referral_code: referralCode.toUpperCase(),
+      final_total: pricing.total,
       payment_method: paymentMethod,
-      mrp: pricing.basePrice,
-      delivery: pricing.delivery,
-      discount: pricing.discount,
-      total: pricing.total,
-      timestamp: new Date().toISOString(),
     };
 
     try {
@@ -450,7 +454,7 @@ export default function ProductModal({
                 </div>
 
                 {/* Trust badges */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
                   {[
                     { icon: <Shield size={12} />, label: 'Secure Order' },
                     { icon: <Package size={12} />, label: 'Premium Quality' },
@@ -462,6 +466,61 @@ export default function ProductModal({
                     </div>
                   ))}
                 </div>
+
+                {/* IIT Merchandise note */}
+                {product.category === 'iit' && (
+                  <div
+                    data-testid="iit-custom-note"
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      alignItems: 'flex-start',
+                      background: 'rgba(37,99,235,0.06)',
+                      border: '1px solid rgba(37,99,235,0.25)',
+                      padding: '12px 16px',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    <MessageCircle
+                      size={14}
+                      color="#3b82f6"
+                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    />
+                    <p
+                      style={{
+                        color: 'rgba(255,255,255,0.65)',
+                        fontSize: '12px',
+                        fontFamily: 'Manrope, sans-serif',
+                        lineHeight: 1.65,
+                        margin: 0,
+                      }}
+                    >
+                      If you want any{' '}
+                      <span style={{ color: '#93c5fd', fontWeight: 700 }}>
+                        personalized name or custom design
+                      </span>{' '}
+                      on IIT merchandise, contact us on{' '}
+                      <a
+                        href={`https://wa.me/${waNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#25d366', fontWeight: 700, textDecoration: 'none' }}
+                      >
+                        WhatsApp
+                      </a>{' '}
+                      or{' '}
+                      <a
+                        href={siteSettings?.instagram_url || 'https://www.instagram.com/thelioneyotshirts/'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#e1306c', fontWeight: 700, textDecoration: 'none' }}
+                      >
+                        Instagram DM
+                      </a>{' '}
+                      for an instant reply.
+                    </p>
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div
@@ -534,7 +593,7 @@ export default function ProductModal({
                       className="input-field"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      placeholder="Enter code e.g. SHIVAM25"
+                      placeholder="Enter promo code e.g. HARSH20"
                       style={{ flex: 1 }}
                       data-testid="input-referral"
                     />
