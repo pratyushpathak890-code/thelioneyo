@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Zap } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
-export default function AdminLogin({ onLogin }) {
+export default function AdminLogin({ onLogin, adminEmail, adminPassword }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -13,20 +11,13 @@ export default function AdminLogin({ onLogin }) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.detail || 'Invalid credentials'); return; }
-      onLogin(data.token, data.email);
-    } catch {
-      setError('Connection error. Please try again.');
-    } finally {
-      setLoading(false);
+    await new Promise((r) => setTimeout(r, 500));
+    if (form.email === adminEmail && form.password === adminPassword) {
+      onLogin(form.email);
+    } else {
+      setError('Invalid email or password. Please try again.');
     }
+    setLoading(false);
   };
 
   return (
