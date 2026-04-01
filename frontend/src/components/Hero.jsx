@@ -83,7 +83,7 @@ export default function Hero({ siteSettings, loading }) {
           }}
         >
           <Zap size={12} color="#2563eb" />
-          <span className="section-label">New Collection 2025</span>
+          <span className="section-label">New Collection 2026</span>
           <div
             style={{
               height: '1px',

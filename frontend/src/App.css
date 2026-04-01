@@ -323,3 +323,92 @@
   stroke-dashoffset: 50;
   animation: checkmark 0.5s ease-out 0.2s forwards;
 }
+
+/* ============================
+   MODAL MOBILE RESPONSIVE FIX
+   ============================ */
+@media (max-width: 767px) {
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-container {
+    max-height: 95dvh !important;
+    height: 95dvh !important;
+    overflow-y: auto !important;
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+  }
+
+  .modal-body {
+    flex-direction: column !important;
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  .modal-panel-left {
+    flex: none !important;
+    height: 260px !important;
+    min-height: 260px !important;
+    max-height: 260px !important;
+    width: 100% !important;
+  }
+
+  .modal-panel-right {
+    flex: none !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+    padding: 20px !important;
+  }
+
+  .modal-related-section {
+    display: none !important;
+  }
+}
+
+/* Related products — desktop compact */
+.modal-related-section {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 28px;
+  flex-shrink: 0;
+  max-height: 168px;
+  overflow: hidden;
+}
+
+.modal-related-section .horizontal-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.modal-related-card {
+  flex-shrink: 0;
+  width: 100px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.2s;
+}
+
+.modal-related-card:hover {
+  border-color: rgba(37,99,235,0.3);
+}
+
+.modal-related-card-img {
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.modal-related-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   X,
   ChevronLeft,
@@ -10,18 +11,31 @@ import {
   Clock,
   CheckCircle,
   Tag,
+  Sparkles,
 } from 'lucide-react';
 
 const DELIVERY_CHARGE = 50;
+const PERSONALIZATION_CHARGE = 40;
 const VALID_REFERRAL_CODES = ['SHIVAM25', 'PRATYUSH25', 'NITIKA25', 'HARSH20'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-function calcPricing(basePrice, referralCode) {
+function calcPricing(basePrice, referralCode, personalizationName) {
   const code = (referralCode || '').trim().toUpperCase();
   const isValid = code.length > 0 && VALID_REFERRAL_CODES.includes(code);
   const discount = isValid ? Math.round(Number(basePrice) * 0.25) : 0;
-  const total = Number(basePrice) + DELIVERY_CHARGE - discount;
-  return { basePrice: Number(basePrice), delivery: DELIVERY_CHARGE, discount, total, isValid };
+  const hasPersonalization = (personalizationName || '').trim().length > 0;
+  const personalizationCharge = hasPersonalization ? PERSONALIZATION_CHARGE : 0;
+  const total = Number(basePrice) + DELIVERY_CHARGE + personalizationCharge - discount;
+  return { basePrice: Number(basePrice), delivery: DELIVERY_CHARGE, discount, personalizationCharge, total, isValid, hasPersonalization };
+}
+
+function saveOrderLocally(orderData) {
+  const orders = JSON.parse(localStorage.getItem('lioneyo_orders') || '[]');
+  const newId = `LNY-${Date.now().toString(36).toUpperCase()}`;
+  const saved = { ...orderData, id: newId, date: new Date().toISOString(), status: 'Processing' };
+  orders.unshift(saved);
+  localStorage.setItem('lioneyo_orders', JSON.stringify(orders.slice(0, 30)));
+  return newId;
 }
 
 function getImages(product) {
@@ -50,8 +64,10 @@ export default function ProductModal({
   const [selectedSize, setSelectedSize] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [referralCode, setReferralCode] = useState('');
+  const [personalizationName, setPersonalizationName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [orderId, setOrderId] = useState('');
   const [sizeError, setSizeError] = useState(false);
   const rightRef = useRef(null);
   const [form, setForm] = useState({
@@ -59,7 +75,7 @@ export default function ProductModal({
     pincode: '', quantity: '1', college_name: '',
   });
 
-  const pricing = calcPricing(product.price, referralCode);
+  const pricing = calcPricing(product.price, referralCode, personalizationName);
   const features = parseFeatures(product.features).length > 0
     ? parseFeatures(product.features)
     : DEFAULT_FEATURES;
@@ -107,10 +123,13 @@ export default function ProductModal({
       quantity: form.quantity,
       college_design_name: form.college_name,
       product_title: product.title,
+      product_image: product.image1 || '',
       price: pricing.basePrice,
       size: selectedSize,
       category: product.category,
       referral_code: referralCode.toUpperCase(),
+      personalization_name: personalizationName.trim(),
+      personalization_charge: pricing.personalizationCharge,
       final_total: pricing.total,
       payment_method: paymentMethod,
     };
@@ -128,6 +147,8 @@ export default function ProductModal({
       console.warn('Order webhook error (non-blocking):', err);
     }
 
+    const newOrderId = saveOrderLocally(orderData);
+    setOrderId(newOrderId);
     setIsSubmitting(false);
     setIsSubmitted(true);
   };
@@ -206,16 +227,16 @@ export default function ProductModal({
 
         {/* Main body */}
         <div
+          className="modal-body md:flex-row flex-col"
           style={{
             display: 'flex',
             flex: 1,
             overflow: 'hidden',
-            flexDirection: 'row',
           }}
-          className="md:flex-row flex-col"
         >
           {/* LEFT: Image Gallery */}
           <div
+            className="modal-panel-left"
             style={{
               flex: '0 0 45%',
               position: 'relative',
@@ -294,6 +315,7 @@ export default function ProductModal({
           {/* RIGHT: Product Info + Order Form */}
           <div
             ref={rightRef}
+            className="modal-panel-right"
             style={{
               flex: 1,
               overflowY: 'auto',
@@ -350,12 +372,38 @@ export default function ProductModal({
                     fontSize: '14px',
                     fontFamily: 'Manrope, sans-serif',
                     lineHeight: 1.7,
-                    marginBottom: '32px',
+                    marginBottom: '20px',
                     maxWidth: '320px',
                   }}
                 >
                   Thank you for your order. Delivery in 4–6 days. Confirmation on WhatsApp.
                 </p>
+
+                {/* Order ID */}
+                {orderId && (
+                  <div
+                    data-testid="order-id-display"
+                    style={{
+                      padding: '12px 24px',
+                      background: 'rgba(37,99,235,0.08)',
+                      border: '1px solid rgba(37,99,235,0.25)',
+                      marginBottom: '24px',
+                      width: '100%',
+                      maxWidth: '320px',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Your Order ID
+                    </div>
+                    <div style={{ color: '#93c5fd', fontWeight: 800, fontSize: '16px', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.12em' }} data-testid="order-id">
+                      {orderId}
+                    </div>
+                    <div style={{ marginTop: '4px', fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontFamily: 'Manrope, sans-serif' }}>
+                      Save this for order tracking
+                    </div>
+                  </div>
+                )}
                 <button
                   className="whatsapp-btn"
                   onClick={openWhatsApp}
@@ -372,6 +420,16 @@ export default function ProductModal({
                 >
                   Continue Shopping
                 </button>
+                <Link
+                  to="/orders"
+                  onClick={onClose}
+                  data-testid="view-my-orders-link"
+                  style={{ marginTop: '10px', display: 'inline-block', color: 'rgba(255,255,255,0.35)', fontSize: '12px', fontFamily: 'Manrope, sans-serif', textDecoration: 'none', letterSpacing: '0.05em', transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#93c5fd')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+                >
+                  View My Orders →
+                </Link>
               </div>
             ) : (
               /* ORDER FORM */
@@ -467,57 +525,35 @@ export default function ProductModal({
                   ))}
                 </div>
 
-                {/* IIT Merchandise note */}
+                {/* IIT Personalization */}
                 {product.category === 'iit' && (
                   <div
-                    data-testid="iit-custom-note"
+                    data-testid="iit-personalization-section"
                     style={{
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'flex-start',
                       background: 'rgba(37,99,235,0.06)',
                       border: '1px solid rgba(37,99,235,0.25)',
-                      padding: '12px 16px',
+                      padding: '16px',
                       marginBottom: '20px',
                     }}
                   >
-                    <MessageCircle
-                      size={14}
-                      color="#3b82f6"
-                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11px', color: '#93c5fd', fontFamily: "'Outfit', sans-serif", fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', cursor: 'default' }}>
+                      <Sparkles size={12} /> Personalized Name on Tee (+₹40)
+                    </label>
+                    <input
+                      className="input-field"
+                      value={personalizationName}
+                      onChange={(e) => setPersonalizationName(e.target.value)}
+                      placeholder="Enter name to print (e.g. RAHUL — optional)"
+                      data-testid="input-personalization"
                     />
-                    <p
-                      style={{
-                        color: 'rgba(255,255,255,0.65)',
-                        fontSize: '12px',
-                        fontFamily: 'Manrope, sans-serif',
-                        lineHeight: 1.65,
-                        margin: 0,
-                      }}
-                    >
-                      If you want any{' '}
-                      <span style={{ color: '#93c5fd', fontWeight: 700 }}>
-                        personalized name or custom design
-                      </span>{' '}
-                      on IIT merchandise, contact us on{' '}
-                      <a
-                        href={`https://wa.me/${waNumber}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#25d366', fontWeight: 700, textDecoration: 'none' }}
-                      >
-                        WhatsApp
-                      </a>{' '}
-                      or{' '}
-                      <a
-                        href={siteSettings?.instagram_url || 'https://www.instagram.com/thelioneyotshirts/'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#e1306c', fontWeight: 700, textDecoration: 'none' }}
-                      >
-                        Instagram DM
-                      </a>{' '}
-                      for an instant reply.
+                    {personalizationName.trim() && (
+                      <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)', color: '#93c5fd', fontSize: '12px', fontFamily: 'Manrope, sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CheckCircle size={12} /> Preview: "{personalizationName}" — +₹40 added to total
+                      </div>
+                    )}
+                    <p style={{ marginTop: '8px', color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontFamily: 'Manrope, sans-serif', lineHeight: 1.55 }}>
+                      Leave empty if no personalization needed. For custom designs contact{' '}
+                      <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25d366', fontWeight: 700, textDecoration: 'none' }}>WhatsApp</a>.
                     </p>
                   </div>
                 )}
@@ -628,6 +664,12 @@ export default function ProductModal({
                     <div className="pricing-row discount">
                       <span>Referral Discount (25%)</span>
                       <span>-₹{pricing.discount}</span>
+                    </div>
+                  )}
+                  {pricing.personalizationCharge > 0 && (
+                    <div className="pricing-row" style={{ color: '#93c5fd' }}>
+                      <span>Personalization</span>
+                      <span>+₹{pricing.personalizationCharge}</span>
                     </div>
                   )}
                   <div className="pricing-row total">
@@ -767,48 +809,30 @@ export default function ProductModal({
 
         {/* Related products */}
         {relatedProducts && relatedProducts.length > 0 && (
-          <div
-            style={{
-              borderTop: '1px solid rgba(255,255,255,0.06)',
-              padding: '20px 28px',
-              flexShrink: 0,
-            }}
-            data-testid="related-products"
-          >
-            <div className="section-label" style={{ marginBottom: '14px' }}>More from this collection</div>
-            <div
-              className="horizontal-scroll"
-              style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}
-            >
+          <div className="modal-related-section" data-testid="related-products">
+            <div className="section-label" style={{ marginBottom: '10px', fontSize: '10px' }}>More from this collection</div>
+            <div className="horizontal-scroll">
               {relatedProducts.slice(0, 6).map((rp) => (
                 <div
                   key={rp.id}
+                  className="modal-related-card"
                   data-testid={`related-product-${rp.id}`}
-                  style={{
-                    flexShrink: 0,
-                    width: '140px',
-                    cursor: 'pointer',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    background: 'rgba(255,255,255,0.02)',
-                    transition: 'border-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)')}
+                  onClick={() => {}}
                 >
-                  <div style={{ width: '100%', aspectRatio: '3/4', overflow: 'hidden', background: '#0a0a0a' }}>
+                  <div className="modal-related-card-img">
                     {rp.image1 ? (
-                      <img src={rp.image1} alt={rp.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={rp.image1} alt={rp.title} />
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <ShoppingBag size={20} style={{ color: 'rgba(255,255,255,0.1)' }} />
+                        <ShoppingBag size={16} style={{ color: 'rgba(255,255,255,0.1)' }} />
                       </div>
                     )}
                   </div>
-                  <div style={{ padding: '8px 10px' }}>
-                    <div style={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '3px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  <div style={{ padding: '6px 8px' }}>
+                    <div style={{ fontSize: '10px', fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                       {rp.title}
                     </div>
-                    <div style={{ fontSize: '12px', fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: '#93c5fd' }}>₹{rp.price}</div>
+                    <div style={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: '#93c5fd', marginTop: '2px' }}>₹{rp.price}</div>
                   </div>
                 </div>
               ))}

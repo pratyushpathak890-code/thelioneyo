@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Upload, X, Save, ImagePlus, Package } from 'lucide-react';
 import { insertProduct, updateProduct, uploadImage, isSupabaseConfigured } from '../../lib/supabase';
 
-const CATEGORIES = ['streetwear', 'iit'];
+const CATEGORIES = ['streetwear', 'mens', 'womens', 'iit'];
 
 const EMPTY_FORM = {
   title: '', caption: '', price: '', category: 'streetwear',
@@ -162,7 +162,7 @@ export default function ProductForm({ product, onSaved, onCancel }) {
             <select className="input-field" value={form.category} onChange={(e) => set('category', e.target.value)} required data-testid="product-category-select">
               {CATEGORIES.map((c) => (
                 <option key={c} value={c} style={{ background: '#0a0a0a' }}>
-                  {c === 'iit' ? 'IIT Collection' : 'Streetwear'}
+                  {c === 'iit' ? 'IIT Collection' : c === 'mens' ? "Men's Collection" : c === 'womens' ? "Women's Collection" : 'Streetwear'}
                 </option>
               ))}
             </select>
