@@ -137,3 +137,51 @@ export async function toggleProductActive(id, is_active) {
   if (error) throw error;
   return data;
 }
+
+export async function insertOrder(orderData) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .insert({ ...orderData, status: 'Processing', created_at: new Date().toISOString() })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.warn('insertOrder (non-critical):', e.message);
+    return null;
+  }
+}
+
+export async function fetchOrders() {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.warn('fetchOrders:', e.message);
+    return [];
+  }
+}
+
+export async function updateOrderStatus(id, status) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.warn('updateOrderStatus:', e.message);
+    return null;
+  }
+}

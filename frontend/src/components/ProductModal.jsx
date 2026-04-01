@@ -13,6 +13,7 @@ import {
   Tag,
   Sparkles,
 } from 'lucide-react';
+import { insertOrder } from '../lib/supabase';
 
 const DELIVERY_CHARGE = 50;
 const PERSONALIZATION_CHARGE = 40;
@@ -148,6 +149,8 @@ export default function ProductModal({
     }
 
     const newOrderId = saveOrderLocally(orderData);
+    // Save to Supabase (non-blocking)
+    insertOrder({ ...orderData, id: newOrderId }).catch(() => {});
     setOrderId(newOrderId);
     setIsSubmitting(false);
     setIsSubmitted(true);
@@ -254,7 +257,7 @@ export default function ProductModal({
                   src={images[imgIdx]}
                   alt={`${product.title} view ${imgIdx + 1}`}
                   data-testid="modal-main-image"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', transition: 'opacity 0.3s' }}
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               ) : (
@@ -308,6 +311,53 @@ export default function ProductModal({
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
                 ))}
+              </div>
+            )}
+
+            {/* Compact Related — 2 items inside left panel */}
+            {relatedProducts && relatedProducts.length > 0 && (
+              <div style={{ padding: '10px 14px 14px', background: '#050505', borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10px', color: '#2563eb', fontFamily: "'Outfit', sans-serif", fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+                    Also Like
+                  </span>
+                  <a
+                    href="#products"
+                    onClick={onClose}
+                    style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'Manrope, sans-serif', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#93c5fd')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                  >
+                    More →
+                  </a>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {relatedProducts.slice(0, 2).map((rp) => (
+                    <div
+                      key={rp.id}
+                      data-testid={`related-product-${rp.id}`}
+                      style={{ flex: 1, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', transition: 'border-color 0.25s', overflow: 'hidden' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(37,99,235,0.35)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
+                    >
+                      <div style={{ height: '70px', overflow: 'hidden', background: '#0a0a0a' }}>
+                        {rp.image1 ? (
+                          <img src={rp.image1} alt={rp.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <ShoppingBag size={14} style={{ color: 'rgba(255,255,255,0.1)' }} />
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ padding: '5px 7px' }}>
+                        <div style={{ fontSize: '10px', fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          {rp.title}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#93c5fd', fontWeight: 800, fontFamily: "'Outfit', sans-serif", marginTop: '2px' }}>₹{rp.price}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -807,38 +857,7 @@ export default function ProductModal({
           </div>
         </div>
 
-        {/* Related products */}
-        {relatedProducts && relatedProducts.length > 0 && (
-          <div className="modal-related-section" data-testid="related-products">
-            <div className="section-label" style={{ marginBottom: '10px', fontSize: '10px' }}>More from this collection</div>
-            <div className="horizontal-scroll">
-              {relatedProducts.slice(0, 6).map((rp) => (
-                <div
-                  key={rp.id}
-                  className="modal-related-card"
-                  data-testid={`related-product-${rp.id}`}
-                  onClick={() => {}}
-                >
-                  <div className="modal-related-card-img">
-                    {rp.image1 ? (
-                      <img src={rp.image1} alt={rp.title} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <ShoppingBag size={16} style={{ color: 'rgba(255,255,255,0.1)' }} />
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: '6px 8px' }}>
-                    <div style={{ fontSize: '10px', fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                      {rp.title}
-                    </div>
-                    <div style={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: '#93c5fd', marginTop: '2px' }}>₹{rp.price}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Related products - removed from bottom, now in left panel above */}
       </div>
     </div>
   );
