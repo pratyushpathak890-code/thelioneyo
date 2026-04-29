@@ -41,7 +41,7 @@ function ImageUploadField({ label, value, onChange, bucket, testid }) {
       </label>
       {value && (
         <div style={{ position: 'relative', display: 'inline-block', marginBottom: '8px' }}>
-          <img src={value} alt={label} style={{ width: 80, height: 80, objectFit: 'cover', display: 'block', border: '1px solid rgba(255,255,255,0.1)' }}
+          <img src={value} alt={label} style={{ width: 80, height: 80, objectFit: 'contain', objectPosition: 'center', display: 'block', border: '1px solid rgba(255,255,255,0.1)', background: '#050505', padding: '4px' }}
             onError={(e) => { e.target.style.opacity = '0.3'; }} />
           <button
             type="button"
@@ -105,6 +105,26 @@ export default function ProductForm({ product, onSaved, onCancel }) {
   const [slugEdited, setSlugEdited] = useState(!!product?.slug);
   const isEdit = !!product;
 
+  // Sync form when product changes (e.g., clicking Edit on different product)
+  useEffect(() => {
+    if (product) {
+      setForm({
+        title: product.title || '',
+        caption: product.caption || '',
+        price: product.price || '',
+        category: product.category || 'streetwear',
+        slug: product.slug || '',
+        image1: product.image1 || '',
+        image2: product.image2 || '',
+        image3: product.image3 || '',
+        features: Array.isArray(product.features) ? product.features.join(', ') : (product.features || ''),
+        is_active: product.is_active !== undefined ? product.is_active : true,
+      });
+      setSlugEdited(!!product.slug);
+      setError('');
+    }
+  }, [product?.id]);
+
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   // Auto-generate slug from title if not manually edited
@@ -121,7 +141,6 @@ export default function ProductForm({ product, onSaved, onCancel }) {
     setSaving(true);
     setError('');
     try {
-      // Ensure unique slug
       const existingSlugs = await fetchAllProductSlugs();
       const baseSlug = form.slug.trim() || generateSlug(form.title.trim());
       const uniqueSlug = makeUniqueSlug(baseSlug, existingSlugs, product?.id ? String(product.id) : null);
@@ -138,14 +157,34 @@ export default function ProductForm({ product, onSaved, onCancel }) {
         features: form.features.trim(),
         is_active: form.is_active,
       };
-      if (isEdit) {
-        await updateProduct(product.id, payload);
-      } else {
-        await insertProduct(payload);
-      }
+
+      const saveWithFallback = async (pl) => {
+        try {
+          if (isEdit) return await updateProduct(product.id, pl);
+          else return await insertProduct(pl);
+        } catch (err) {
+          // If slug column doesn't exist in DB, retry without it
+          const msg = err.message || '';
+          if (msg.includes('slug') || msg.includes('column') || err.code === '42703') {
+            const { slug: _s, ...payloadNoSlug } = pl;
+            if (isEdit) return await updateProduct(product.id, payloadNoSlug);
+            else return await insertProduct(payloadNoSlug);
+          }
+          throw err;
+        }
+      };
+
+      await saveWithFallback(payload);
       onSaved();
     } catch (err) {
-      setError(err.message);
+      const msg = err.message || '';
+      if (msg.includes('row-level security') || msg.includes('permission') || msg.includes('policy')) {
+        setError('Permission denied. Run the UPDATE/DELETE policy SQL shown above in your Supabase dashboard.');
+      } else if (msg.includes('JSON object requested') || msg.includes('multiple') || msg.includes('0 rows')) {
+        setError('Update failed — Supabase RLS policy missing. Add UPDATE policy for products table in Supabase dashboard.');
+      } else {
+        setError(msg || 'Save failed. Please try again.');
+      }
     } finally {
       setSaving(false);
     }

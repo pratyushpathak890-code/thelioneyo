@@ -95,14 +95,17 @@ export default function AdminDashboard({ adminEmail, onLogout }) {
     if (activeTab === 'orders') loadOrders();
   }, [activeTab]);
 
+  const [deletingId, setDeletingId] = useState(null);
+
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this product permanently?')) return;
     try {
       await deleteProduct(id);
       setProducts((p) => p.filter((x) => x.id !== id));
-      showToast('Product deleted');
+      setDeletingId(null);
+      showToast('Product deleted successfully');
     } catch (e) {
-      showToast('Error: ' + e.message);
+      setDeletingId(null);
+      showToast('Delete failed: ' + e.message);
     }
   };
 
@@ -389,6 +392,22 @@ export default function AdminDashboard({ adminEmail, onLogout }) {
               </div>
             )}
 
+            {/* Supabase RLS fix notice */}
+            <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', padding: '14px 18px', marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <div style={{ color: '#fbbf24', fontSize: '12px', fontFamily: 'Manrope, sans-serif', lineHeight: 1.7, flex: 1 }}>
+                <strong style={{ fontFamily: "'Outfit', sans-serif", letterSpacing: '0.05em' }}>⚠ Supabase Setup Required</strong> — If Edit/Delete is not saving, run this SQL in your{' '}
+                <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd', textDecoration: 'underline' }}>Supabase Dashboard → SQL Editor</a>:
+                <pre style={{ marginTop: '8px', background: 'rgba(0,0,0,0.4)', padding: '10px 12px', fontSize: '11px', overflowX: 'auto', color: '#fde68a', lineHeight: 1.6 }}>
+{`-- Allow UPDATE and DELETE on products table
+CREATE POLICY "allow_update" ON products FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "allow_delete" ON products FOR DELETE USING (true);
+
+-- Also add slug column if not added yet
+ALTER TABLE products ADD COLUMN IF NOT EXISTS slug TEXT;`}
+                </pre>
+              </div>
+            </div>
+
             {/* Products table */}
             <div
               style={{
@@ -432,7 +451,7 @@ export default function AdminDashboard({ adminEmail, onLogout }) {
                         <tr key={p.id} data-testid={`product-row-${p.id}`}>
                           <td>
                             {p.image1 ? (
-                              <img src={p.image1} alt={p.title} style={{ width: 48, height: 48, objectFit: 'cover', display: 'block' }} />
+                              <img src={p.image1} alt={p.title} style={{ width: 48, height: 48, objectFit: 'contain', objectPosition: 'center', display: 'block', background: '#050505', padding: '2px', border: '1px solid rgba(255,255,255,0.06)' }} />
                             ) : (
                               <div style={{ width: 48, height: 48, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <ShoppingBag size={16} style={{ color: 'rgba(255,255,255,0.15)' }} />
@@ -469,7 +488,7 @@ export default function AdminDashboard({ adminEmail, onLogout }) {
                             </button>
                           </td>
                           <td>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                               <button
                                 onClick={() => { setEditingProduct(p); setShowProductForm(true); }}
                                 data-testid={`edit-product-${p.id}`}
@@ -479,15 +498,35 @@ export default function AdminDashboard({ adminEmail, onLogout }) {
                               >
                                 <Edit size={12} /> Edit
                               </button>
-                              <button
-                                onClick={() => handleDelete(p.id)}
-                                data-testid={`delete-product-${p.id}`}
-                                style={{ padding: '6px 12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.15)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
-                              >
-                                <Trash2 size={12} /> Delete
-                              </button>
+                              {deletingId === p.id ? (
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '11px', color: '#f87171', fontFamily: 'Manrope, sans-serif', whiteSpace: 'nowrap' }}>Sure?</span>
+                                  <button
+                                    onClick={() => handleDelete(p.id)}
+                                    data-testid={`confirm-delete-${p.id}`}
+                                    style={{ padding: '5px 10px', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', fontSize: '11px', cursor: 'pointer', fontWeight: 700 }}
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    onClick={() => setDeletingId(null)}
+                                    data-testid={`cancel-delete-${p.id}`}
+                                    style={{ padding: '5px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: '11px', cursor: 'pointer' }}
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setDeletingId(p.id)}
+                                  data-testid={`delete-product-${p.id}`}
+                                  style={{ padding: '6px 12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.15)')}
+                                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+                                >
+                                  <Trash2 size={12} /> Delete
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
