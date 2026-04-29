@@ -1,87 +1,113 @@
-# THE LIONEYO — PRD (Updated)
+# THE LIONEYO — PRD (Updated Feb 2026)
 
-## Problem Statement
-Production-ready premium clothing brand e-commerce website with Supabase, Google Sheets orders, WhatsApp, UPI/COD, admin panel, and customer dashboard.
+## Original Problem Statement
+Build a complete production-ready premium clothing brand website called "THE LIONEYO" using React + CRA. The app uses Supabase for product/settings management, a Google Apps Script webhook for order submissions, and WhatsApp for order communication.
+
+## Product Goals
+- Premium dark luxury streetwear storefront
+- Dynamic products from Supabase, categorized filtering
+- Secure payment via Razorpay (full + partial COD)
+- WhatsApp auto-confirmation after payment
+- Shareable product links (/product/:slug)
+- Zero-cost Vercel hosting with serverless functions for Razorpay
 
 ## Architecture
-- **Frontend**: React (CRA + Craco) + Tailwind + Supabase JS
-- **Backend**: None (bypassed for Vercel free tier)
-- **Database**: Supabase — tables: `products`, `site_settings`, `orders`
-- **Orders**: Google Apps Script webhook + Supabase `orders` table
-- **Payments**: UPI + COD
-- **Admin Auth**: Frontend `.env` check only
+```
+/app/frontend/
+├── api/razorpay/
+│   ├── create-order.js    # Vercel serverless — RAZORPAY_KEY_SECRET only here
+│   └── verify-payment.js
+├── src/
+│   ├── components/
+│   │   ├── ProductModal.jsx     ← Complete overhaul: Razorpay + layout fix
+│   │   ├── ProductCard.jsx      ← Share button + category labels
+│   │   ├── ProductGrid.jsx
+│   │   ├── admin/
+│   │   │   ├── ProductForm.jsx     ← slug field added
+│   │   │   ├── SiteSettingsForm.jsx ← partial_cod_amount + cod_enabled
+│   │   │   └── AdminDashboard.jsx
+│   ├── pages/
+│   │   ├── Home.jsx
+│   │   ├── OrdersPage.jsx
+│   │   └── ProductDetailPage.jsx  ← /product/:slug deep link page
+│   ├── lib/
+│   │   ├── supabase.js    ← auto-slug generation from title
+│   │   └── slugify.js
+│   └── App.js             ← /product/:slug route added
+├── vercel.json            ← routes: api/* → serverless, /* → index.html
+└── .env                   ← REACT_APP_RAZORPAY_KEY_ID added
+```
 
-## Routes
-- `/` — Storefront
-- `/orders` — Customer Order Dashboard (localStorage)
-- `/admin` — Admin Panel (Products + Orders + Settings)
+## Key Features Implemented
 
-## Admin Credentials
-- Email: admin@thelioneyo.com
-- Password: Lioneyo@123
+### ✅ Product Storefront (Complete)
+- Dark luxury theme (#080808 background)
+- Supabase product grid with Mens/Womens/IIT/Streetwear filters
+- ProductCard with share button + correct category labels
+- Auto-generated slugs from title (no DB migration needed)
 
-## Supabase Tables
-- `products`: id, title, caption, price, category (streetwear/mens/womens/iit), image1-3, features, is_active, created_at
-- `site_settings`: id, hero_heading, hero_subtext, hero_image, whatsapp_number, upi_id, google_script_url, instagram_url, qr_image_url, updated_at
-- `orders`: id, full_name, phone, email, address, city, state, pincode, quantity, product_title, product_image, price, size, category, referral_code, personalization_name, personalization_charge, final_total, payment_method, status, college_design_name, created_at
+### ✅ Product Modal (Complete - Feb 2026)
+- Fixed layout: max-width 1160px, max-height 90vh, two-column desktop
+- LEFT: product images (object-fit: CONTAIN, dark bg), thumbnails, related products
+- RIGHT: form, pricing, Razorpay payment selection
+- Responsive: single column on mobile (430px+)
+- Online Payment + Partial COD buttons
+- WhatsApp auto-opens after Razorpay payment
 
-## Pricing Logic
-- Delivery: ₹50 flat
-- Personalization (IIT only): +₹40
-- Referral codes: SHIVAM25, PRATYUSH25, NITIKA25 → 25% off; HARSH20 → 25% off
-- Final = base + 50 + personalizationCharge - discount
+### ✅ Razorpay Integration
+- Frontend: REACT_APP_RAZORPAY_KEY_ID (test: rzp_test_SjNwkn3HS07NOq)
+- Serverless API: /api/razorpay/create-order + /api/razorpay/verify-payment
+- RAZORPAY_KEY_SECRET only in Vercel env vars (never in frontend)
+- After payment: WhatsApp opens automatically with full order details
 
-## What's Implemented (All Sessions)
+### ✅ Deep Linking & Share
+- Route: /product/:slug → ProductDetailPage
+- Auto-generated slug from title (DB migration optional)
+- Share button on ProductCard + ProductModal header
+- navigator.share() with clipboard fallback
 
-### Session 1 — MVP
-- Dark luxury UI, hero, product cards, product modal, admin panel, footer
+### ✅ Admin Panel (Complete)
+- ProductForm: slug field (auto-generated, editable)
+- SiteSettingsForm: partial_cod_amount (default 150) + cod_enabled toggle
+- Orders tab with mailto confirmation
 
-### Session 2 — Production
-- Supabase integration, site_settings, Google Script webhook, Admin auth refactor, vercel.json
+### ✅ Other
+- OrdersPage (customer order history from localStorage)
+- IIT Personalization (+₹40) in checkout
+- Referral codes (SHIVAM25, PRATYUSH25, NITIKA25, HARSH20 = 25% off)
 
-### Session 3 (2026-04)
-- [x] Emergent branding removed from index.html
-- [x] Page title: "THE LIONEYO | Premium Streetwear"
-- [x] SEO meta tags
-- [x] "New Collection 2026"
-- [x] Mens/Womens categories (admin + storefront)
-- [x] Animated Category Filter Tabs with count badges
-- [x] IIT Personalization field (+₹40)
-- [x] Order Dashboard (/orders) — localStorage based
-- [x] My Orders count badge in Navbar
-- [x] Mobile modal layout fix
+## Supabase DB Schema
 
-### Session 4 (2026-04)
-- [x] Modal image: object-position top center (face visible)
-- [x] Related products: 2 items inside left panel + More button (not below form)
-- [x] Admin Orders tab with all incoming orders
-- [x] "Confirm Email" button in admin → opens Gmail with pre-filled email
-- [x] "Mark Delivered" button in admin
-- [x] Orders saved to Supabase + localStorage + Google Sheets
-- [x] Vercel build passing (148KB gzipped)
-- [x] vercel.json updated with buildCommand, outputDirectory
-- [x] .env.example created for Vercel deployment
-- [x] VERCEL_DEPLOY.md deployment guide
+### products table
+```sql
+id, title, slug (TEXT UNIQUE), price, category, caption,
+image1, image2, image3, features (TEXT/JSON),
+is_active (BOOL), created_at
+```
+Note: slug column may not exist yet — auto-generated from title as fallback
 
-## Environment Variables (Vercel)
+### site_settings table
+```sql
+id, hero_heading, hero_subtext, hero_image,
+whatsapp_number, upi_id, google_script_url, qr_image_url, instagram_url,
+partial_cod_amount (INT DEFAULT 150), cod_enabled (BOOL DEFAULT TRUE),
+updated_at
+```
+
+## Vercel Deployment
+Environment variables needed in Vercel dashboard:
 - REACT_APP_SUPABASE_URL
 - REACT_APP_SUPABASE_ANON_KEY
 - REACT_APP_WHATSAPP_NUMBER
 - REACT_APP_GOOGLE_SCRIPT_URL
-- REACT_APP_UPI_ID
-- REACT_APP_ADMIN_EMAIL
-- REACT_APP_ADMIN_PASSWORD
+- REACT_APP_RAZORPAY_KEY_ID
+- RAZORPAY_KEY_ID (for serverless)
+- RAZORPAY_KEY_SECRET (for serverless — NEVER in frontend)
 
-## Pending User Actions
-1. Create `orders` table in Supabase (SQL in VERCEL_DEPLOY.md)
-2. Connect GitHub → Vercel (Root Dir: `frontend`)
-3. Set env variables in Vercel dashboard
-4. Add Mens/Womens/IIT products via Admin panel
-
-## Future Backlog
-- Product search bar
-- Email notifications (SendGrid/Resend)
-- Size availability per product
-- Customer reviews
-- Instagram feed
-- Analytics dashboard
+## Backlog / Future Tasks
+- P1: Add slug column to Supabase DB: `ALTER TABLE products ADD COLUMN slug TEXT UNIQUE;`
+- P1: Add COD settings to Supabase: `ALTER TABLE site_settings ADD COLUMN partial_cod_amount INTEGER DEFAULT 150; ALTER TABLE site_settings ADD COLUMN cod_enabled BOOLEAN DEFAULT TRUE;`
+- P2: Customer reviews section
+- P2: Instagram feed integration
+- P2: Analytics dashboard
+- P3: Stock/inventory management in admin

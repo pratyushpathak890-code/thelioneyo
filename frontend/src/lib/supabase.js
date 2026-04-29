@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { generateSlug } from './slugify';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -41,14 +42,23 @@ export async function uploadImage(file, bucket = 'product-images') {
 export async function fetchProductBySlug(slug) {
   if (!supabase) return null;
   try {
-    const { data, error } = await supabase
+    // Try exact DB slug match first
+    const { data: exact } = await supabase
       .from('products')
       .select('*')
       .eq('slug', slug)
       .eq('is_active', true)
       .maybeSingle();
-    if (error) throw error;
-    return data;
+    if (exact) return exact;
+
+    // Fallback: match by auto-generated slug from title
+    const { data: all } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true);
+    if (!all) return null;
+    const match = all.find(p => generateSlug(p.title) === slug);
+    return match ? { ...match, slug: generateSlug(match.title) } : null;
   } catch (e) {
     console.warn('fetchProductBySlug:', e.message);
     return null;
@@ -71,7 +81,8 @@ export async function fetchProducts() {
     .eq('is_active', true)
     .order('created_at', { ascending: false });
   if (error) { console.error('fetchProducts error:', error); return []; }
-  return data || [];
+  // Auto-inject computed slug for products without one (no DB migration needed)
+  return (data || []).map(p => ({ ...p, slug: p.slug || generateSlug(p.title) }));
 }
 
 export async function fetchAllProducts() {
@@ -81,7 +92,7 @@ export async function fetchAllProducts() {
     .select('*')
     .order('created_at', { ascending: false });
   if (error) { console.error('fetchAllProducts error:', error); return []; }
-  return data || [];
+  return (data || []).map(p => ({ ...p, slug: p.slug || generateSlug(p.title) }));
 }
 
 export async function fetchSiteSettings() {
