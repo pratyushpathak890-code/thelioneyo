@@ -12,6 +12,8 @@ const EMPTY = {
   google_script_url: '',
   qr_image_url: 'https://customer-assets.emergentagent.com/job_lioneyo-preview/artifacts/faocstdf_upi-qr.png.jpeg',
   instagram_url: 'https://www.instagram.com/thelioneyotshirts/',
+  partial_cod_amount: 150,
+  cod_enabled: true,
 };
 
 function ImageUploadField({ label, value, onChange, bucket, testid, hint }) {
@@ -128,6 +130,8 @@ export default function SiteSettingsForm({ onSaved }) {
         google_script_url: form.google_script_url,
         qr_image_url: form.qr_image_url,
         instagram_url: form.instagram_url,
+        partial_cod_amount: Number(form.partial_cod_amount) || 150,
+        cod_enabled: !!form.cod_enabled,
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -206,6 +210,39 @@ export default function SiteSettingsForm({ onSaved }) {
       </div>
 
       {/* Integrations */}
+      <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)', padding: '28px', marginBottom: '20px' }}>
+        <div className="section-label" style={{ marginBottom: '20px' }}>Razorpay / COD Settings</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <Field
+            label="Partial COD Advance Amount (₹)"
+            value={form.partial_cod_amount}
+            onChange={set('partial_cod_amount')}
+            placeholder="150"
+            type="number"
+            testid="partial-cod-amount-input"
+            hint="Advance amount customer pays via Razorpay for COD orders."
+          />
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>COD Option</label>
+            <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '11px', fontFamily: 'Manrope, sans-serif', marginBottom: '10px' }}>Show Partial COD option to customers during checkout.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="checkbox"
+                id="cod_enabled"
+                checked={!!form.cod_enabled}
+                onChange={(e) => setForm(f => ({ ...f, cod_enabled: e.target.checked }))}
+                style={{ width: 16, height: 16, accentColor: '#2563eb' }}
+                data-testid="cod-enabled-toggle"
+              />
+              <label htmlFor="cod_enabled" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontFamily: 'Manrope, sans-serif', cursor: 'pointer' }}>
+                Enable Partial COD option
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Order Webhook */}
       <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)', padding: '28px', marginBottom: '28px' }}>
         <div className="section-label" style={{ marginBottom: '20px' }}>Order Webhook (Google Sheets)</div>
         <Field

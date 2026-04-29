@@ -180,8 +180,10 @@ export default function ProductDetailPage() {
 
   const handleFormChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-  const openWhatsApp = () => {
-    const pd = paymentDetails;
+  const openWhatsApp = (pdOverride, orderIdOverride, methodOverride) => {
+    const pd = pdOverride !== undefined ? pdOverride : paymentDetails;
+    const oid = orderIdOverride !== undefined ? orderIdOverride : orderId;
+    const meth = methodOverride !== undefined ? methodOverride : paymentMethod;
     const lines = [
       `*Order — THE LIONEYO*`,
       ``,
@@ -191,11 +193,11 @@ export default function ProductDetailPage() {
       `Size: ${selectedSize}`,
       `Qty: ${form.quantity}`,
       `Total: ₹${pricing.total}`,
-      `Payment: ${paymentMethod === 'ONLINE' ? 'Online (Razorpay)' : 'Partial COD'}`,
+      `Payment: ${meth === 'ONLINE' ? 'Online (Razorpay)' : 'Partial COD'}`,
       pd ? `Paid: ₹${pd.paid_amount}` : '',
-      paymentMethod === 'PARTIAL_COD' ? `Remaining COD: ₹${pricing.total - partialCodAmt}` : '',
+      meth === 'PARTIAL_COD' ? `Remaining COD: ₹${pricing.total - partialCodAmt}` : '',
       pd?.payment_id ? `Razorpay ID: ${pd.payment_id}` : '',
-      `Order ID: ${orderId}`,
+      oid ? `Order ID: ${oid}` : '',
       ``,
       `Address: ${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
     ].filter(Boolean).join('\n');
@@ -301,6 +303,8 @@ export default function ProductDetailPage() {
       setOrderId(tempId);
       setIsSubmitting(false);
       setIsSubmitted(true);
+      // Auto-open WhatsApp immediately after payment
+      openWhatsApp(details, tempId, paymentMethod);
 
     } catch (err) {
       setIsSubmitting(false);
@@ -350,10 +354,10 @@ export default function ProductDetailPage() {
           {/* LEFT — Image gallery */}
           <div>
             {/* Main image */}
-            <div style={{ position: 'relative', background: '#0a0a0a', overflow: 'hidden', marginBottom: '12px', aspectRatio: '3/4', maxHeight: '70vh' }}>
+            <div style={{ position: 'relative', background: '#040404', overflow: 'hidden', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', maxHeight: '65vh' }}>
               {images.length > 0 ? (
                 <img src={images[imgIdx]} alt={`${product.title} ${imgIdx + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+                  style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', objectPosition: 'center', display: 'block', padding: '12px' }}
                   onError={e => e.target.style.display = 'none'}
                 />
               ) : (
@@ -385,8 +389,8 @@ export default function ProductDetailPage() {
             {images.length > 1 && (
               <div style={{ display: 'flex', gap: '8px' }}>
                 {images.map((img, i) => (
-                  <div key={i} onClick={() => setImgIdx(i)} style={{ flex: 1, aspectRatio: '1', overflow: 'hidden', cursor: 'pointer', border: `2px solid ${i === imgIdx ? '#2563eb' : 'rgba(255,255,255,0.06)'}`, transition: 'border-color 0.2s' }}>
-                    <img src={img} alt={`thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} onError={e => e.target.style.display = 'none'} />
+                  <div key={i} onClick={() => setImgIdx(i)} style={{ flex: '0 0 70px', height: '70px', overflow: 'hidden', cursor: 'pointer', border: `2px solid ${i === imgIdx ? '#2563eb' : 'rgba(255,255,255,0.06)'}`, transition: 'border-color 0.2s', background: '#040404', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={img} alt={`thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', padding: '4px' }} onError={e => e.target.style.display = 'none'} />
                   </div>
                 ))}
               </div>
@@ -402,7 +406,7 @@ export default function ProductDetailPage() {
                       onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)'}
                       onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
                     >
-                      {rp.image1 && <img src={rp.image1} alt={rp.title} style={{ width: '100%', height: '120px', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />}
+                      {rp.image1 && <img src={rp.image1} alt={rp.title} style={{ width: '100%', height: '120px', objectFit: 'contain', objectPosition: 'center', background: '#040404', display: 'block', padding: '4px' }} />}
                       <div style={{ padding: '8px 10px' }}>
                         <div style={{ fontSize: '11px', fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{rp.title}</div>
                         <div style={{ fontSize: '13px', color: '#93c5fd', fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>₹{rp.price}</div>
@@ -454,8 +458,8 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                 )}
-                <button className="whatsapp-btn" onClick={openWhatsApp} style={{ width: '100%', marginBottom: '10px' }} data-testid="whatsapp-confirm-btn">
-                  <MessageCircle size={16} /> Confirm on WhatsApp
+                <button className="whatsapp-btn" onClick={() => openWhatsApp()} style={{ width: '100%', marginBottom: '10px' }} data-testid="whatsapp-confirm-btn">
+                  <MessageCircle size={16} /> Resend WhatsApp
                 </button>
                 <Link to="/orders" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', fontSize: '12px', fontFamily: 'Manrope, sans-serif', textDecoration: 'none', transition: 'all 0.2s', marginBottom: '10px' }}
                   onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}

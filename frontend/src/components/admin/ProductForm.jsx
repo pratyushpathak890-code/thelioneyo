@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, X, Save, ImagePlus, Package } from 'lucide-react';
-import { insertProduct, updateProduct, uploadImage, isSupabaseConfigured } from '../../lib/supabase';
+import { insertProduct, updateProduct, uploadImage, isSupabaseConfigured, fetchAllProductSlugs } from '../../lib/supabase';
+import { generateSlug, makeUniqueSlug } from '../../lib/slugify';
 
 const CATEGORIES = ['streetwear', 'mens', 'womens', 'iit'];
 
 const EMPTY_FORM = {
   title: '', caption: '', price: '', category: 'streetwear',
+  slug: '',
   image1: '', image2: '', image3: '',
   features: '200 GSM, Bio Wash, Breathable, Premium Print, Gen-Z Streetwear Feel',
   is_active: true,
@@ -91,6 +93,7 @@ export default function ProductForm({ product, onSaved, onCancel }) {
     caption: product.caption || '',
     price: product.price || '',
     category: product.category || 'streetwear',
+    slug: product.slug || '',
     image1: product.image1 || '',
     image2: product.image2 || '',
     image3: product.image3 || '',
@@ -99,9 +102,18 @@ export default function ProductForm({ product, onSaved, onCancel }) {
   } : { ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [slugEdited, setSlugEdited] = useState(!!product?.slug);
   const isEdit = !!product;
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Auto-generate slug from title if not manually edited
+  const handleTitleChange = (val) => {
+    set('title', val);
+    if (!slugEdited) {
+      set('slug', generateSlug(val));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,11 +121,17 @@ export default function ProductForm({ product, onSaved, onCancel }) {
     setSaving(true);
     setError('');
     try {
+      // Ensure unique slug
+      const existingSlugs = await fetchAllProductSlugs();
+      const baseSlug = form.slug.trim() || generateSlug(form.title.trim());
+      const uniqueSlug = makeUniqueSlug(baseSlug, existingSlugs, product?.id ? String(product.id) : null);
+
       const payload = {
         title: form.title.trim(),
         caption: form.caption.trim(),
         price: Number(form.price),
         category: form.category,
+        slug: uniqueSlug,
         image1: form.image1 || null,
         image2: form.image2 || null,
         image3: form.image3 || null,
@@ -155,7 +173,7 @@ export default function ProductForm({ product, onSaved, onCancel }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>Product Title *</label>
-            <input className="input-field" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="e.g. OG Black Tee" required data-testid="product-title-input" />
+            <input className="input-field" value={form.title} onChange={(e) => handleTitleChange(e.target.value)} placeholder="e.g. OG Black Tee" required data-testid="product-title-input" />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>Category *</label>
@@ -167,6 +185,25 @@ export default function ProductForm({ product, onSaved, onCancel }) {
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Slug */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: "'Outfit', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            URL Slug <span style={{ color: 'rgba(255,255,255,0.2)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(auto-generated, editable)</span>
+          </label>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.2)', fontSize: '12px', fontFamily: 'Manrope, sans-serif', pointerEvents: 'none' }}>/product/</span>
+            <input
+              className="input-field"
+              value={form.slug}
+              onChange={(e) => { set('slug', e.target.value.toLowerCase().replace(/[^\w-]/g, '')); setSlugEdited(true); }}
+              placeholder="og-black-tee"
+              style={{ paddingLeft: '76px' }}
+              data-testid="product-slug-input"
+            />
+          </div>
+          <p style={{ marginTop: '5px', color: 'rgba(255,255,255,0.2)', fontSize: '11px', fontFamily: 'Manrope, sans-serif' }}>Shareable product URL. Only lowercase letters, numbers, hyphens.</p>
         </div>
 
         {/* Caption */}
