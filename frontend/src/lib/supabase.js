@@ -38,6 +38,31 @@ export async function uploadImage(file, bucket = 'product-images') {
   return urlData.publicUrl;
 }
 
+export async function fetchProductBySlug(slug) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.warn('fetchProductBySlug:', e.message);
+    return null;
+  }
+}
+
+export async function fetchAllProductSlugs() {
+  if (!supabase) return [];
+  try {
+    const { data } = await supabase.from('products').select('id, slug').not('slug', 'is', null);
+    return (data || []).map((r) => r.slug).filter(Boolean);
+  } catch { return []; }
+}
+
 export async function fetchProducts() {
   if (!supabase) return [];
   const { data, error } = await supabase
